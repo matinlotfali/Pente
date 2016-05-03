@@ -1,0 +1,13 @@
+<RCC>
+    <qresource prefix="/sounds">
+        <file>Speech Off.wav</file>
+        <file>Speech On.wav</file>
+    </qresource>
+    <qresource prefix="/images">
+        <file>others/icon512.png</file>
+        <file>others/right.png</file>
+        <file>others/background.jpg</file>
+        <file>others/black.png</file>
+        <file>others/white.png</file>
+    </qresource>
+</RCC>
