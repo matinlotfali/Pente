@@ -1,4 +1,4 @@
-#include "mainwindow.h"
+#include "opengl.h"
 #include "QDebug"
 #include "QTime"
 #include "QTimer"
@@ -6,18 +6,17 @@
 #include "QMouseEvent"
 #include "QMessageBox"
 #include "QThread"
-#include "QtMultimedia/QSound"
 #include "qmath.h"
+#include "mainform.h"
 
-MainWindow::MainWindow(QWidget *parent) :
-    QWidget(parent)
+MainWindow::MainWindow(MainForm *parent) :
+    QOpenGLWidget(parent)
 {
     drawState = FirstMenu;
     afterFadeState = FirstMenu;
-    fade = 0;    
-    multiplayer=false;        
-
-    resize(400,600);
+    fade = 0;
+    multiplayer=false;
+    myParent = parent;
 
     game = new Game(this);
     connect(game, &Game::DoneSignal, this, &MainWindow::AIDone);
@@ -40,16 +39,12 @@ MainWindow::MainWindow(QWidget *parent) :
     sizeMenuItems->append("10 x 10");
     sizeMenuItems->append("15 x 15");
     sizeMenuItems->append("19 x 19");
-    sizeMenuItems->append("Back");       
+    sizeMenuItems->append("Back");
     sizeMenu = new Menu("Select Size:", sizeMenuItems);
 
     QList<QString> *aboutMenuItems = new QList<QString>();
     aboutMenuItems->append("Back");
-    aboutMenu = new Menu("", aboutMenuItems, "\nProgrammer:\nMatin Lotfaliei");
-
-    drawTimer = new QTimer(this);
-    connect(drawTimer, SIGNAL(timeout()), this, SLOT(update()));
-    drawTimer->start(15);
+    aboutMenu = new Menu("", aboutMenuItems, "\nProgrammer:\nMatin Lotfaliei");    
 
     fadeTimer.restart();
 }
@@ -66,12 +61,12 @@ MainWindow::~MainWindow()
 
 void MainWindow::AIDone()
 {    
-    QSound::play(":/sounds/Speech Off.wav");        
-    update();
+    emit myParent->playSoundOff();
 }
 
 void MainWindow::mousePressEvent(QMouseEvent* e)
 {
+    QOpenGLWidget::mousePressEvent(e);
     if(game->isRunning())
         return;    
 
@@ -107,7 +102,7 @@ void MainWindow::mousePressEvent(QMouseEvent* e)
             fadeTimer.restart();
             break;
         case 3:
-            this->close();
+            myParent->close();
             break;
         }
         return;
@@ -167,19 +162,20 @@ void MainWindow::mousePressEvent(QMouseEvent* e)
 
         game->board[game->lastX][game->lastY] = game->turn;
         if(game->turn == White)
-            QSound::play(":/sounds/Speech On.wav");
+            emit myParent->playSoundOn();
         else
-            QSound::play(":/sounds/Speech Off.wav");
+            emit myParent->playSoundOff();
         game->turn = game->turn==White? Black: White;        
 
         if(!game->IsOver())
             if(!multiplayer)
-                game->start();                
+                game->start(QThread::TimeCriticalPriority);
     }    
 }
 
-void MainWindow::resizeEvent(QResizeEvent*)
+void MainWindow::resizeEvent(QResizeEvent* e)
 {
+    QOpenGLWidget::resizeEvent(e);
     int width = this->width();
     int height = this->height();
     if(width >= height)
@@ -249,7 +245,7 @@ void MainWindow::DrawFadeIn(QPainter *painter)
 }
 
 void MainWindow::DrawPlayGame(QPainter *painter)
-{
+{        
     DrawBackground(painter);
 
     QPixmap whitePiece (":/images/others/white.png");
@@ -339,29 +335,29 @@ void MainWindow::DrawPlayGame(QPainter *painter)
         }
 
         if(game->gameOverTimer.elapsed() >= 2000)
-        {
+        {            
             QMessageBox::StandardButton result;
             if(multiplayer || won == WhiteWon)
             {
                 QString p = game->turn == White? p2: p1;
-                result = QMessageBox::question(this,
+                result = QMessageBox::question(myParent,
                         p + " won!!",
                         p + " won!!\n\nMatin thanks you for playing this game!!! :-)\n\nPlay again?",
                         QMessageBox::Yes|QMessageBox::No);
             }
             else if(won == Draw)
-            {
-                result = QMessageBox::question(this,
+            {                
+                result = QMessageBox::question(myParent,
                         "Draw!!",
                         "No one won!!\nHe he he he.... (OMRAN!!)\nMatin thanks you for playing this game!!! :-)\nPlay again?",
-                        QMessageBox::Yes|QMessageBox::No);
+                        QMessageBox::Yes|QMessageBox::No);                
             }
             else
-            {
-                result = QMessageBox::question(this,
+            {                
+                result = QMessageBox::question(myParent,
                         "You lost!!",
                         "You lost!!\nHe he he he.... (OMRAN!!)\nMatin thanks you for playing this game!!! :-)\nPlay again?",
-                        QMessageBox::Yes|QMessageBox::No);
+                        QMessageBox::Yes|QMessageBox::No);                
             }
 
             if(result == QMessageBox::Yes)
@@ -372,10 +368,24 @@ void MainWindow::DrawPlayGame(QPainter *painter)
     }
 }
 
-void MainWindow::paintEvent(QPaintEvent*)
-{        
-    QPainter painter(this);    
-    painter.setRenderHint(QPainter::HighQualityAntialiasing);
+bool MainWindow::IsFadeIn()
+{
+    return drawState == afterFadeState && fade != 255;
+}
+
+bool MainWindow::IsFadeOut()
+{
+    return drawState != afterFadeState && fade != 0;
+}
+
+void MainWindow::paintEvent(QPaintEvent*e)
+{
+    if(isDrawing)
+        return;
+    QOpenGLWidget::paintEvent(e);
+    isDrawing = true;
+    QPainter painter(this);
+    painter.setRenderHint(QPainter::Antialiasing);
 
     switch(drawState)
     {
@@ -396,9 +406,9 @@ void MainWindow::paintEvent(QPaintEvent*)
         break;
     }
 
-    if(drawState == afterFadeState && fade != 255)    
-       DrawFadeIn(&painter);
-
-    if(drawState != afterFadeState && fade != 0)    
-       DrawFadeOut(&painter);
+    if(IsFadeIn())
+        DrawFadeIn(&painter);
+    else if(IsFadeOut())
+        DrawFadeOut(&painter);
+    isDrawing = false;
 }

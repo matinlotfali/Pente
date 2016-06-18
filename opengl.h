@@ -1,21 +1,24 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-#include <QWidget>
+#include <QOpenGLWidget>
 #include <game.h>
 #include "menu.h"
 #include "QTime"
+#include "QPixmap"
+
+class MainForm;
 
 namespace Ui {
 class MainWindow;
 }
 
-class MainWindow : public QWidget
+class MainWindow : public QOpenGLWidget
 {
     Q_OBJECT
 
 public:
-    explicit MainWindow(QWidget *parent = 0);
+    explicit MainWindow(MainForm *parent = 0);
     ~MainWindow();    
     int boardSize, boardTop, boardLeft;
 
@@ -28,18 +31,20 @@ private:
     Menu *difficultyMenu, *firstMenu, *sizeMenu, *aboutMenu;
     States drawState, afterFadeState;
     int fade;
-    bool multiplayer;
-    QString p1,p2;
-    QTimer *drawTimer;
+    bool multiplayer, isDrawing;
+    QString p1,p2;    
     QTime fadeTimer;
+    MainForm* myParent;
 
     void mousePressEvent(QMouseEvent*);
     void resizeEvent(QResizeEvent*);
-    void paintEvent(QPaintEvent*);
+    void paintEvent(QPaintEvent*e);
     void DrawBackground(QPainter *painter);
     void DrawFadeOut(QPainter *painter);
     void DrawFadeIn(QPainter *painter);
     void DrawPlayGame(QPainter *painter);
+    bool IsFadeIn();
+    bool IsFadeOut();
 };
 
 #endif // MAINWINDOW_H

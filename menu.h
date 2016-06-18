@@ -3,6 +3,7 @@
 
 #include <qlist.h>
 #include <qpainter.h>
+#include <QPixmap>
 
 class MainWindow;
 
@@ -16,6 +17,10 @@ class Menu
 private:
     QString title, text;
     QList<QString> *menuList;
+
+    static QImage* icon;
+    static QFont* font;
+    static QBrush* orange;
 
 public:
     Menu(QString title, QList<QString> *menuList, QString text = "");

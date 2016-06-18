@@ -1,16 +1,16 @@
-#include "mainwindow.h"
+#include "mainform.h"
 #include <QApplication>
 
-#if defined(Q_OS_LINUX) || defined(Q_OS_MAC) || defined(Q_OS_WIN32)
+#if !defined(Q_OS_ANDROID)
 #include <qdesktopwidget.h>
 #endif
 
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
-    MainWindow w;
+    MainForm w;
 
-#if defined(Q_OS_LINUX) || defined(Q_OS_MAC) || defined(Q_OS_WIN32)
+#if !defined(Q_OS_ANDROID)
     w.move(QApplication::desktop()->screen()->rect().center() - w.rect().center());
 #endif
 

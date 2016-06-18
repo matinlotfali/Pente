@@ -1,27 +1,34 @@
 #include "menu.h"
-#include "mainwindow.h"
+#include "opengl.h"
+
+QImage* Menu::icon = NULL;
+QFont* Menu::font = NULL;
+QBrush* Menu::orange = NULL;
 
 Menu::Menu(QString title, QList<QString> *menuList, QString text)
 {
     this->menuList = menuList;
     this->title = title;
     this->text = text;
+
+    if(!icon)
+        icon = new QImage(":/images/others/icon512.png");
+    if(!font)
+        font = new QFont("Tahoma");
+    if(!orange)
+        orange = new QBrush("orange");
 }
 
 void Menu::Draw(QPainter *painter, MainWindow *window)
 {
     int w = window->width();
     int h = window->height();
-    QRect rect = window->rect();
-    QPixmap icon (":/images/others/icon512.png");
-    QFont f ("Tahoma");
-    QBrush orange ("orange");
+    QRect rect = window->rect();            
+    font->setPixelSize(window->boardSize/16);
 
-    f.setPixelSize(window->boardSize/16);
-    painter->setFont(f);
+    painter->setFont(*font);
     painter->setPen(Qt::white);
-    painter->setBrush(orange);
-
+    painter->setBrush(*orange);
     painter->fillRect(rect,Qt::black);
 
     if(w<h)
@@ -29,7 +36,7 @@ void Menu::Draw(QPainter *painter, MainWindow *window)
         int iw = w/2;
         int ih = h/4;
         int is = iw<ih? iw: ih;
-        painter->drawPixmap(w/4+ (w/2-is)/2, h/8 + (h/4-is)/2, is, is, icon);
+        painter->drawImage(QRect(w/4+ (w/2-is)/2, h/8 + (h/4-is)/2, is, is), *icon);
 
         painter->drawText(
                     0,
@@ -63,7 +70,7 @@ void Menu::Draw(QPainter *painter, MainWindow *window)
                         h/2 + h*(i+1)/16 + h*(i+1)/32,
                         w - 2*w/8 - h/16,
                         h/16,
-                        orange);
+                        *orange);
 
             painter->drawText(
                         w/8,
@@ -78,7 +85,7 @@ void Menu::Draw(QPainter *painter, MainWindow *window)
         int iw = w/4;
         int ih = h/2;
         int is = iw<ih? iw: ih;
-        painter->drawPixmap(w/8+ (w/4-is)/2, h/4 + (h/2-is)/2, is, is, icon);
+        painter->drawImage(QRect(w/8+ (w/4-is)/2, h/4 + (h/2-is)/2, is, is), *icon);
 
         painter->drawText(
                     w/2,
@@ -112,7 +119,7 @@ void Menu::Draw(QPainter *painter, MainWindow *window)
                         h*(i+2)/16 + h*(i+1)/32,
                         w/2 - w/16 - h/16,
                         h/16,
-                        orange);
+                        *orange);
 
             painter->drawText(
                         w/2,

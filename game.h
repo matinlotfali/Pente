@@ -42,9 +42,9 @@ protected:
 private:    
     QTime* timer;    
     int bestX, bestY;
-    bool IsNear(int i, int j,int distance, Piece board[19][19]);
-    int StateCost(Piece board[19][19]);
-    int CostBlack(Piece black, Piece white, Piece board[19][19]);
+    inline bool IsNear(int i, int j,int distance, Piece board[19][19]);
+    inline int StateCost(Piece board[19][19]);
+    inline int CostBlack(Piece black, Piece white, Piece board[19][19]);
     int AlphaBetaPruning(int alpha, int beta, int depth, Piece board[19][19]);
 };
 

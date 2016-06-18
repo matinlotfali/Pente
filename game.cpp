@@ -32,7 +32,7 @@ void Game::run(void)
     lastX = bestX;
     lastY = bestY;
     turn = White;
-    DoneSignal();
+    emit DoneSignal();
 }
 
 QRect Game::GetPentePieces()
@@ -186,7 +186,7 @@ Won Game::IsOver(Piece board[19][19])
     return Draw;
 }
 
-int Game::CostBlack(Piece black, Piece white, Piece board[19][19])
+inline int Game::CostBlack(Piece black, Piece white, Piece board[19][19])
 {
     int c = 0;
     for (int k = 0; k < size; k++)
@@ -334,12 +334,12 @@ int Game::CostBlack(Piece black, Piece white, Piece board[19][19])
     return c;
 }
 
-int Game::StateCost(Piece board[19][19])
+inline int Game::StateCost(Piece board[19][19])
 {
     return CostBlack(Black, White,board) - CostBlack(White, Black,board);
 }
 
-bool Game::IsNear(int i, int j,int distance, Piece board[19][19])
+inline bool Game::IsNear(int i, int j,int distance, Piece board[19][19])
 {
     if (i >= distance)
     {
@@ -380,7 +380,7 @@ bool Game::IsNear(int i, int j,int distance, Piece board[19][19])
     return false;
 }
 
-int Game::AlphaBetaPruning(int alpha, int beta, int depth, Piece board[19][19])
+inline int Game::AlphaBetaPruning(int alpha, int beta, int depth, Piece board[19][19])
 {    
     if (depth < depthDeep && !IsOver())
     {
@@ -413,23 +413,31 @@ int Game::AlphaBetaPruning(int alpha, int beta, int depth, Piece board[19][19])
                         {
                             board[i][j] = (depth % 2 == 0)? Black: White;
 
-                            int newScore = AlphaBetaPruning(alpha, beta, depth + 1,board);
-
-                            if(depth % 2 == 0)
+                            if(IsOver())
+                                if(depth % 2 == 0)
+                                    alpha = StateCost(board);
+                                else
+                                    beta = StateCost(board);
+                            else
                             {
-                                if (alpha < newScore)
+                                int newScore = AlphaBetaPruning(alpha, beta, depth + 1,board);
+
+                                if(depth % 2 == 0)
                                 {
-                                    alpha = newScore;
-                                    if (depth == 0)
+                                    if (alpha < newScore)
                                     {
-                                        bestX = i;
-                                        bestY = j;
+                                        alpha = newScore;
+                                        if (depth == 0)
+                                        {
+                                            bestX = i;
+                                            bestY = j;
+                                        }
                                     }
                                 }
+                                else
+                                    if (beta > newScore)
+                                        beta = newScore;
                             }
-                            else
-                                if (beta > newScore)
-                                    beta = newScore;
 
                             board[i][j] = Empty;
 

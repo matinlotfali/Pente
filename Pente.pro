@@ -11,6 +11,8 @@ QMAKE_CXXFLAGS -= -O1
 QMAKE_CFLAGS = -O3
 QMAKE_CXXFLAGS = -O3
 
+QMAKE_CXXFLAGS += -std=c++11
+
 QT += core gui
 QT += multimedia
 
@@ -20,13 +22,16 @@ TARGET = Pente
 TEMPLATE = app
 
 SOURCES += main.cpp\
-        mainwindow.cpp \
     game.cpp \
-    menu.cpp
+    menu.cpp \
+    opengl.cpp \
+    mainform.cpp
 
-HEADERS  += mainwindow.h \
+HEADERS  += \
     game.h \
-    menu.h
+    menu.h \
+    opengl.h \
+    mainform.h
 
 RESOURCES += \
     sounds.qrc
